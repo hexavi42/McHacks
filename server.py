@@ -2,7 +2,7 @@ from flask import Flask
 app = Flask(__name__)
 
 @app.route("/static", methods=['GET'])
-def paramedic_page():
+def static_get():
     return app.send_static_file('static.html')
 
 @app.route('/hello')
