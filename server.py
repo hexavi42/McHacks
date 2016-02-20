@@ -1,9 +1,10 @@
 from flask import Flask
+import flask
 app = Flask(__name__)
 
-@app.route("/static", methods=['GET'])
-def static_get():
-    return app.send_static_file('index.html')
+@app.route("/")
+def index():
+    return flask.send_file('index.html')
 
 @app.route('/hello')
 def hello_world():
