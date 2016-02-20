@@ -65,7 +65,7 @@ def search(query, oauth):
         f.writerow(["content"])      
         while not stop:
             # Sets the params
-            params = {'q' : query, 'since' : OLDEST_TWEET_DATE, 'count' : 100}
+            params = {'q' : query, 'since' : OLDEST_TWEET_DATE, 'count' : 100, 'until', '2016-02-19'}
             if oldest_id != -1:
                 params["max_id"] = oldest_id
             print "Oldest Id:", oldest_id
@@ -83,8 +83,9 @@ def search(query, oauth):
                         oldest_id = r["id"]
 # Executable Code
 args = sys.argv
-if len(sys.argv) != 1:
+if len(sys.argv) != 2:
     print "Must have exactly 1 argument, the search query string"
 else:
     oauth = get_oauth()
-    search(sys.argv[0], oauth)
+    print "Search: " + sys.argv[1]
+    search(sys.argv[1], oauth)
