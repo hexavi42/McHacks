@@ -5,7 +5,10 @@ import csv
 import json
 import os
 import errno
+import sys
 
+# Metadata
+OLDEST_TWEET_DATE = "2015-01-01"
 # URLs 
 REQUEST_TOKEN_URL = "https://api.twitter.com/oauth/request_token"
 AUTHORIZE_URL = "https://api.twitter.com/oauth/authorize?oauth_token="
@@ -49,21 +52,39 @@ def get_oauth():
     return oauth
 # Uses Twitter REST API to search for tweets with the query and saves to csv
 def search(query, oauth):
-    # Makes a RESTful GET request
-    params = {'q' : query}
-    request = requests.get(url=SEARCH_URL, auth=oauth, params=params)
-    result = request.json
     # Removes to write to if it already exists
-    filename = "data/" + query + ".csv"
+    filename = "data/" + query.lower().replace(" ", "-") + ".csv"
     try:
         os.remove(filename)
     except OSError:
         pass
-    # Writes to CSV 
+    stop = False
+    oldest_id = -1
     with open(filename, "wb+") as outfile:
-    	f = csv.writer(outfile)
-    	f.writerow(["pk", "model", "codename", "name", "content_type"])
-    return request.json
-
-oauth = get_oauth()
-print search("Bernie Sanders", oauth)
+        f = csv.writer(outfile)
+        f.writerow(["content"])      
+        while not stop:
+            # Sets the params
+            params = {'q' : query, 'since' : OLDEST_TWEET_DATE, 'count' : 100}
+            if oldest_id != -1:
+                params["max_id"] = oldest_id
+            print "Oldest Id:", oldest_id
+            # Makes a GET request
+            response = requests.get(url=SEARCH_URL, auth=oauth, params=params)
+            result =  json.loads(response.content)
+            # Stops loop when no more results to show
+            if len(result) == 0:
+                stop = True
+            else:
+                # Writes to CSV 
+                for r in result["statuses"]:
+                    f.writerow([u''.join(r["text"]).encode('utf-8')])
+                    if oldest_id == -1 or r["id"] < oldest_id:
+                        oldest_id = r["id"]
+# Executable Code
+args = sys.argv
+if len(sys.argv) != 1:
+    print "Must have exactly 1 argument, the search query string"
+else:
+    oauth = get_oauth()
+    search(sys.argv[0], oauth)
