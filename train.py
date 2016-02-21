@@ -141,12 +141,12 @@ class Candidate_Predictor:
                         if state is None:
                             pass
                         else:
-                                overall_senti = self.return_sent(row[0])
-                                if state not in states:
-                                    states[state] = overall_senti
-                                else:
-                                    states[state] = states[state]+overall_senti
-                                counter += 1
+                            overall_senti = self.return_sent(row[0])
+                            if state not in states:
+                                states[state] = overall_senti
+                            else:
+                                states[state] = states[state]+overall_senti
+                            counter += 1
                     else:
                         pass
             self.candidate_favor[candidate] = states
