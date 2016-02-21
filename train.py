@@ -124,7 +124,6 @@ class Candidate_Predictor:
                     if self.depth and counter > self.depth:
                         break
                     elif len(row) == 2 and row[1]:
-                        counter += 1
                         state = normalize_state_name(row[1])
                         if state is None:
                             pass
@@ -134,6 +133,7 @@ class Candidate_Predictor:
                                     states[state] = overall_senti
                                 else:
                                     states[state] = states[state]+overall_senti
+                                counter += 1
                     else:
                         pass
             self.candidate_favor[candidate] = states
