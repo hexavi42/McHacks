@@ -249,6 +249,16 @@ class Candidate_Predictor:
             results[candidate] = results[candidate] * factor
         return results
 
+    def load(self, json_file):
+        with open(json_file, 'r') as backup:
+            temp = json.load(backup)
+            self.states = temp['states']
+            self.candidate_favor = temp['candidate_favor']
+
+    def dump(self, file="dump.json"):
+        with open(file, 'w') as dumpfile:
+            json.dump({"states":self.states}, dumpfile)
+
     def save(self, file='sentiment.csv'):
         with open(file, 'w') as csvfile:
             fieldnames = ['candidate']+state_code.values()
@@ -267,7 +277,7 @@ class Candidate_Predictor:
           # Generates results
           results = {}
           for state in state_code.values():
-              results[state] = predict(state)
+              results[state] = self.predict(state)
           # Inverts the dict to write in correct format
           formatted = {}
           for state in results:
