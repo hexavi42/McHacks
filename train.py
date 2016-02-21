@@ -1,19 +1,24 @@
 import numpy as np
+import requests
+import json
 
-ALABAMA = 1, ALASKA = 2, ARIZONA = 3, ARKANSAS = 4, CALIFORNIA = 5, COLORADO = 6, CONNECTICUT = 7,
-DELAWARE = 8, FLORIDA = 9, GEORGIA = 10, HAWAII = 11, IDAHO = 12, ILLINOIS = 13, INDIANA = 14, IOWA = 15,
-KANSAS = 16, KENTUCKY = 17, LOUISIANA = 18, MAINE = 19, MARYLAND = 20, MASSACHUSSETTS = 21, 
-MICHIGAN = 22, MINNESOTA = 23, MISSISSIPPI = 24, MISSOURI = 25, MONTANA = 26, NEBRASKA = 27, NEVADA = 28,
-NEW_HAMPSHIRE = 29, NEW_JERSEY = 30, NEW_MEXICO = 31, NEW_YORK = 32, NORTH_CAROLINA = 33, 
-NORTH_DEKOTA = 34, OHIO = 35, OKLAHOMA = 36, OREGON = 37, PENNSYLVANIA = 38, RHODE_ISLAND = 39, SOUTH_CAROLINA = 40, SOUTH_DEKOTA = 41, TENNESSEE = 42, TEXAS = 43, UTAH = 44, VERMONT = 45, VIRGINIA = 46, WASHINGTON = 47, WEST_VIRGINIA = 48, WISCONSON = 49, WYOMING = 50
-
+# API Info
+LOCATION_API_URL = "https://api.fullcontact.com/v2/address/locationNormalizer.json"
+LOCATION_AI_KEY = "82eeccbc6e96bcd1"
+# Candidates
 SANDERS = 1, CLINTON = 2, TRUMP = 3, BUSH = 4, CARSON = 5, CRUZ = 6, KASICH = 7, RUBIO = 8
 
-# Should get the integer(constant) that most likely is the state of location string.
-# Returns -1 if not in the US
-def get_state_val(string):
-    pass
-
+# Should get the normalized state name that most likely is the state of location string.
+# Returns -1 if not in the US or not enough info
+def normalize_state_name(string):
+    if not string:
+        return -1
+    params = {"place" : string, "apiKey" : LOCATION_API_KEY}
+    response = requests.post(url=LOCATION_API_URL, params=params)
+    result = json.loads(response.content)
+    if result["likelihood"] > 0.5 and result["country"]["code"] == "US" and result["state"]:
+        return statesMap[result["state"]["name"]]
+    return -1
 # Returns the sentiment value stored in the database
 def get_sentiment_value(candidate, state):
     pass
