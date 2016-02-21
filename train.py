@@ -68,6 +68,7 @@ class Candidate_Predictor:
     depth = False
     candidate_favor = {}
     total_pop = 0
+    gone_count = 0
 
     def __init__(self, port=8080, pool=all_candidates, depth=False):
         self.mldb = Connection(host="http://localhost:{0}".format(port))
@@ -141,6 +142,7 @@ class Candidate_Predictor:
                     else:
                         state = normalize_state_name(row['location'])
                         if state is None:
+                            self.gone_count += 1
                             pass
                         else:
                             overall_senti = self.return_sent(row['text'])
@@ -149,6 +151,7 @@ class Candidate_Predictor:
                             elif row['user_id'] not in self.states[state]:
                                 self.states[state][row['user_id']] = {candidate: overall_senti}
                                 self.states['pop'] += 1
+                                self.total_pop += 1
                             elif candidate not in self.states[row['user_id']]:
                                 self.states[state][row['user_id']][candidate] = overall_senti
                             else:
@@ -167,8 +170,11 @@ class Candidate_Predictor:
 
     def calc_supporters(self):
         for state in self.states:
-            for citizen in state:
-                top_pick = max(citizen.iteritems(), key=operator.itemgetter(1))[0]
+            for citizen in self.states[state]:
+                try:
+                    top_pick = max(self.states[state][citizen].iteritems(), key=operator.itemgetter(1))[0]
+                except:
+                    print(self.states[state][citizen])
                 if state not in self.candidate_favor[top_pick]:
                     self.candidate_favor[top_pick][state] = {'pop': 1}
                     self.candidate_favor[top_pick][state]['perc'] = float(1)/state['pop']*100
