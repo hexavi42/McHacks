@@ -59,8 +59,13 @@ def calculate_params():
     theta = np.multiply(np.multiply(np.linalg.inv(np.multiply(np.transpose(x), x)), np.transpose(x)), out)
     set_params(theta)
 
+# Trains all the sentiment values based on the expected results
 def train():
     calculate_sentiments()
     calculate_params()
 
+# Predicts the situation for a given list of candidates for a specific state
+# Returns a map of the percentage each candidate is predicted to have
+def predict(candidates, state):
+    pass
 
