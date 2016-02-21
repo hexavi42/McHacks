@@ -3,6 +3,8 @@ import requests
 import json
 from pymldb import Connection
 import csv
+
+# TODO: Make less shitty by not having global fucking variables
 candidates = [
     'bernie-sanders',
     'hillary-clinton',
@@ -38,7 +40,10 @@ def normalize_state_name(string):
         return None
     params = {"place": string, "apiKey": LOCATION_API_KEY}
     response = requests.get(url=LOCATION_API_URL, params=params)
-    result = json.loads(response.content)["locations"]
+    result = json.loads(response.content)
+    if result["locations"]:
+        return None
+    result = result["locations"]
     if len(result) > 0 and result[0]["country"]["code"] == "US" and result[0]["state"]:
         return result[0]["state"]["name"]
     return None
@@ -137,9 +142,22 @@ def calculate_params():
     theta = np.multiply(np.multiply(np.linalg.inv(np.multiply(np.transpose(x), x)), np.transpose(x)), out)
 
 
+# Trains all the sentiment values based on the expected results
 def train():
     calculate_sentiments()
     calculate_params()
+
+
+# Predicts the situation for a given list of candidates for a specific state
+# Returns a map of the percentage each candidate is predicted to have
+def predict(candidates, state):
+    results = {}
+    for candidate in candidates:
+        inp = [get_sentiment_value(candidate, state)]
+        # TODO: WTF
+        results[candidate] = np.multiply(theta, inp)
+    return results
+
 
 if __name__ == "__main__":
     calculate_sentiments()
