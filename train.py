@@ -229,8 +229,11 @@ class Candidate_Predictor:
         for r in self.results:
             candidate = r[0]
             state = r[1]
-            inp.append(self.get_input(candidate, state))
-            out.append(r[3])
+            try:
+                inp.append(self.get_input(candidate, state))
+                out.append(r[3])
+            except:
+                pass
         # Linear regression
         x = np.array(inp)
         self.theta = np.multiply(np.multiply(np.linalg.inv(np.multiply(np.transpose(x), x)), np.transpose(x)), out)
