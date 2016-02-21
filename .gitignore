@@ -63,4 +63,5 @@ target/
 
 venv/
 data/
+data2/
 *.tgz

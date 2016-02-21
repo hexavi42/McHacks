@@ -205,7 +205,7 @@ class Candidate_Predictor:
     def get_input(self, candidate, state):
         inp = []
         max_tweet_time = (self.candidate_favor[candidate][state]['maxTime'] - self.candidate_favor[candidate][state]['minTime']).total_seconds() / 100
-        inp.append(self.candidate_favor[candidate][state]['perc'])
+        inp.append(self.candidate_favor[candidate][state]['perc'] if 'perc' in self.candidate_favor[candidate][state] else 0)
         inp.append(self.candidate_favor[candidate][state]['RT'])
         inp.append(self.candidate_favor[candidate][state]['pop'])
         inp.append(max_tweet_time)
@@ -222,14 +222,17 @@ class Candidate_Predictor:
             if candidate in self.candidate_favor and state in self.candidate_favor[candidate]:
                 inp.append(self.get_input(candidate, state))
                 out.append(r[2])
+        inp[2][2] += 1
+	inp[1][1] += 1
         # Linear regression
         x = np.array(inp)
-        print x
-        self.theta = np.transpose(x) * x
+        print(np.transpose(x))
+	print x
+        self.theta = np.dot(np.transpose(x),x)
         print self.theta
         self.theta = np.linalg.inv(self.theta)
         print self.theta
-        self.theta = self.theta * np.transpose(x) * out
+        self.theta = np.dot(self.theta, np.dot(np.transpose(x), out))
         print self.theta
 
     # Predicts the situation for a given list of candidates for a specific state
@@ -237,12 +240,21 @@ class Candidate_Predictor:
     def predict(self, state):
         results = {}
         total = 0
+        mini = 500
         for candidate in self.candidate_favor:
-            if state in self.candidate_favor[candidate]:
-            	inp = self.get_input(candidate, state)
-            	results[candidate] = np.dot(self.theta, inp)
-            	total += results[candidate]
+            try:
+                if state in self.candidate_favor[candidate]:
+            	    inp = self.get_input(candidate, state)
+            	    results[candidate] = np.dot(self.theta, inp)
+            	    if results[candidate] < mini:
+                       mini = results[candidate]
+            except:
+                pass
         # Normalize the results so they add to 100%
+        for candidate in results:
+            if mini < 0:
+                results[candidate] += mini * -1
+            total += results[candidate]
         if total != 0:
             factor = 100 / total
             for candidate in results:
@@ -261,17 +273,23 @@ class Candidate_Predictor:
         with open(file, 'w') as dumpfile:
             json.dump({"states":self.states}, dumpfile)
 
-    def save(self, file='sentiment.csv'):
+    def save(self, file='sentiment2.csv'):
         with open(file, 'w') as csvfile:
             fieldnames = ['candidate']+state_code.values()
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
-            for candidate in self.candidates:
-                temp_dic = {'candidate': candidate}
-                for state in self.candidate_favor[candidate].keys():
-                    temp_dic[state] = self.candidate_favor[candidate][state]['perc']
-                writer.writerow(temp_dic)
-    
+            try:
+		for candidate in self.candidates:
+                    temp_dic = {'candidate': candidate}
+                    for state in self.candidate_favor[candidate].keys():
+                    	try:
+		    	    temp_dic[state] = self.candidate_favor[candidate][state]['perc']
+		        except:
+			    pass
+                    writer.writerow(temp_dic)
+	    except:
+		pass    
+
     # Generate predictions for all states
     def generate_all_predictions(self):
         # Writes header
@@ -285,17 +303,19 @@ class Candidate_Predictor:
             # Inverts the dict to write in correct format
             formatted = {}
             for state in results:
-                for candidate in results[state]:
-                    if candidate not in formatted:
-                        formatted[candidate] = { 'candidate' : candidate }
+                if results[state] != 0:
+                    for candidate in results[state]:
+                        if candidate not in formatted:
+                            formatted[candidate] = { 'candidate' : candidate }
                         formatted[candidate][state] = results[state][candidate]
             # Writes
             for candidate in formatted:
                 writer.writerow(formatted[candidate])
 
 if __name__ == "__main__":
-    test = Candidate_Predictor()
+    test = Candidate_Predictor(depth=200)
     test.run_candidates()
     test.calc_supporters()
-    print(test.candidate_favor)
+    test.train()
+    test.generate_all_predictions()
     test.save()
