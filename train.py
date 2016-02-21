@@ -41,7 +41,7 @@ def normalize_state_name(string):
     params = {"place": string, "apiKey": LOCATION_API_KEY}
     response = requests.get(url=LOCATION_API_URL, params=params)
     result = json.loads(response.content)
-    if result["locations"]:
+    if "locations" in key:
         return None
     result = result["locations"]
     if len(result) > 0 and result[0]["country"]["code"] == "US" and result[0]["state"]:
