@@ -175,7 +175,7 @@ class Candidate_Predictor:
                                 self.candidate_favor[candidate][state]['RT'] = int(row['retweets'] if row['retweets'] else 0)
 
     def calc_supporters(self):
-        for state in self.states:
+        for state in state_code.values():
             for citizen in self.states[state]:
                 try:
                     top_pick = max(self.states[state][citizen].iteritems(), key=operator.itemgetter(1))[0]
