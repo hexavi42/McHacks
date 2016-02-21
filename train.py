@@ -6,7 +6,7 @@ import csv
 import re
 from state_code import state_code
 
-candidates = [
+all_candidates = [
     'bernie-sanders',
     'hillary-clinton',
     'donald-trump',
@@ -66,7 +66,7 @@ class Candidate_Predictor:
     theta = []
     depth = False
 
-    def __init__(self, port=8080, pool=candidates, depth=False):
+    def __init__(self, port=8080, pool=all_candidates, depth=False):
         self.mldb = Connection(host="http://localhost:{0}".format(port))
         self.set_wordnet()
         self.candidates = pool
@@ -153,7 +153,7 @@ class Candidate_Predictor:
 
     # Returns the sentiment value stored in the database
     def get_sentiment_value(self, candidate, state):
-        self.candidate_favor[candidates[candidate]][state]
+        self.candidate_favor[all_candidates[candidate]][state]
 
     # Gets all the results stored in the database
     def get_results(self):
