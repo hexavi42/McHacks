@@ -139,11 +139,11 @@ class Candidate_Predictor:
                     if self.depth and counter > self.depth:
                         break
                     else:
-			try:
+                        try:
                             state = normalize_state_name(row['location'])
                         except:
-			    state = None
-			if state is None:
+                            state = None
+                        if state is None:
                             pass
                         else:
                             overall_senti = self.return_sent(row['text'])
@@ -158,15 +158,17 @@ class Candidate_Predictor:
                                 self.states[state][row['user_id']][candidate] = self.states[state][row['user_id']][candidate]+overall_senti
                             counter += 1
                             if candidate not in self.candidate_favor:
-                                self.candidate_favor[candidate] = {'minTime': parser.parse(row['created_at']),
+                                self.candidate_favor[candidate] = {}
+                            if state not in self.candidate_favor[candidate]:
+                                self.candidate_favor[candidate][state] = {'minTime': parser.parse(row['created_at']),
                                                                    'maxTime': parser.parse(row['created_at']),
-                                                                   'RT': int(row['retweets'] if row['retweets'] else 0)}
+                                                                   'RT': int(row['retweets'] if row['retweets'] else 0)} 
                             else:
-                                if parser.parse(row['created_at']) > self.candidate_favor[candidate]['maxTime']:
-                                    self.candidate_favor[candidate]['maxTime'] = parser.parse(row['created_at'])
-                                elif parser.parse(row['created_at']) < self.candidate_favor[candidate]['minTime']:
-                                    self.candidate_favor[candidate]['minTime'] = parser.parse(row['created_at'])
-                                self.candidate_favor[candidate]['RT'] = int(row['retweets'] if row['retweets'] else 0)
+                                if parser.parse(row['created_at']) > self.candidate_favor[candidate][state]['maxTime']:
+                                    self.candidate_favor[candidate][[state]'maxTime'] = parser.parse(row['created_at'])
+                                elif parser.parse(row['created_at']) < self.candidate_favor[candidate][state]['minTime']:
+                                    self.candidate_favor[candidate][state]['minTime'] = parser.parse(row['created_at'])
+                                self.candidate_favor[candidate][state]['RT'] = int(row['retweets'] if row['retweets'] else 0)
 
     def calc_supporters(self):
         for state in self.states:
@@ -187,6 +189,15 @@ class Candidate_Predictor:
     def get_results(self):
         # Format: [[CANDIDATE_ID, STATE_ID, VOTE_PERCENTAGE], ...]
         pass
+    
+    def get_input(self, candidate, state):
+        inp = []
+        max_tweet_time = (self.candidate_favor[candidate][state]['maxTime'] - self.candidate_favor[candidate][state]['minTime']).total_seconds() / 100
+        inp.append(self.candidate_favor[candidate][state]['perc'])
+        inp.append(self.candidate_favor[candidate][state]['RT'])
+        inp.append(self.candidate_favor[candidate][state]['count'])
+        inp.append(max_tweet_time)
+        return inp
 
     # Calculates the parameteres using normal equations
     def calculate_params(self):
@@ -196,8 +207,7 @@ class Candidate_Predictor:
         for r in results:
             candidate = r[0]
             state = r[1]
-            # TODO: More inputs
-            inp.append(self.get_sentiment_value(candidate, state))
+            inp.append(self.get_input(candidate, state))
             out.append(r[3])
         # Linear regression
         x = np.array(inp)
@@ -213,8 +223,7 @@ class Candidate_Predictor:
     def predict(self, state):
         results = {}
         for candidate in self.candidates:
-            inp = [self.get_sentiment_value(candidate, state)]
-            # TODO: WTF
+            inp = self.get_input(candidate, state)
             results[candidate] = np.multiply(self.theta, inp)
         return results
 
