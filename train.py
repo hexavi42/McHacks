@@ -190,8 +190,18 @@ class Candidate_Predictor:
             results[candidate] = np.multiply(self.theta, inp)
         return results
 
+    def save(self, file='sentiment.csv'):
+        with open(file, 'w') as csvfile:
+            fieldnames = ['candidate']+state_code.values()
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for candidate in self.candidates:
+                self.candidate_favor[candidate]['candidate'] = candidate
+                writer.writerow(self.candidate_favor[candidate])
+
 
 if __name__ == "__main__":
-    test = Candidate_Predictor(pool=['bernie-sanders'], depth=50)
+    test = Candidate_Predictor()
     test.run_candidates()
     print(test.candidate_favor)
+    test.save()
