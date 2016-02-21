@@ -8,6 +8,7 @@ candidates = [
     'hillary-clinton',
     'donald-trump',
     'jeb-bush',
+    'ben-carson',
     'ted-cruz',
     'john-kasich',
     'marco-rubio'
@@ -139,3 +140,7 @@ def calculate_params():
 def train():
     calculate_sentiments()
     calculate_params()
+
+if __name__ == "__main__":
+    calculate_sentiments()
+    print(candidate_favor)
