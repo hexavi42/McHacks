@@ -63,10 +63,10 @@ def search(query, oauth):
     with open(filename, "wb+") as outfile:
         f = csv.writer(outfile)
         if write_header:
-            f.writerow(["text", "location"])
+            f.writerow(["text", "location", "retweets", "user_id", "created_at"])
         while not stop:
             # Sets the params
-            params = {'q' : query, 'since' : OLDEST_TWEET_DATE, 'count' : 100, 'until' : '2016-02-19'}
+            params = {'q' : query + "-filter:retweets", 'since' : OLDEST_TWEET_DATE, 'count' : 100, 'until' : '2016-02-19'}
             if oldest_id != -1:
                 params["max_id"] = oldest_id
             # Makes a GET request
@@ -78,7 +78,9 @@ def search(query, oauth):
             else:
                 # Writes to CSV 
                 for r in result["statuses"]:
-                    f.writerow([u''.join(r["text"]).encode('utf-8'), u''.join(r["user"]["location"]).encode('utf-8')])
+                    f.writerow([u''.join(r["text"]).encode('utf-8'), \
+                        u''.join(r["user"]["location"]).encode('utf-8'), \
+                        r["retweet_count"], r["user"]["id"], r["created_at"]])
                     if oldest_id == -1 or r["id"] < oldest_id:
                         oldest_id = r["id"]
             print "Oldest Id:", oldest_id
