@@ -40,10 +40,12 @@ def normalize_state_name(string):
     if "locations" not in result:
         return None
     result = result["locations"]
-    if len(result) > 0 and "country" in result[0] and "code" in result[0]["country"]\
-       and result[0]["country"]["code"] == "US" and "state" in result[0] and result[0]["state"]:
-        return result[0]["state"]["name"]
-    return None
+    for loc in result:
+        if "country" in loc and 'code' in loc["country"] and\
+         loc["country"]['code'] == 'US':
+            return loc["state"]["name"]
+        else:
+            return None
 
 
 class Candidate_Predictor:
