@@ -22,16 +22,6 @@ all_candidates = [
 # API Info
 LOCATION_API_URL = "http://api.fullcontact.com/v2/address/locationEnrichment.json"
 LOCATION_API_KEY = "82eeccbc6e96bcd1"
-# Candidates
-SANDERS = 1
-CLINTON = 2
-TRUMP = 3
-BUSH = 4
-CARSON = 5
-CRUZ = 6
-KASICH = 7
-RUBIO = 8
-
 
 # Should get the normalized state name that most likely is the state of location string.
 # Returns None if not in the US or not enough info
@@ -202,15 +192,15 @@ class Candidate_Predictor:
     # Hardcoded, because hackathon
     def generate_results(self):
         # Democratic Nevada
-        self.results.append([2, "Nevada", 52.7]) # Clinton
-        self.results.append([1, "Nevada", 47.2]) # Sanders
+        self.results.append(["hillary-clinton", "Nevada", 52.7]) # Clinton
+        self.results.append(["bernie-sanders", "Nevada", 47.2]) # Sanders
         # Republican South Carolina
-        self.results.append([3, "South Carolina", 32.5]) # Trump
-        self.results.append([8, "South Carolina", 22.5]) # Rubio
-        self.results.append([6, "South Carolina", 22.3]) # Cruz
-        self.results.append([4, "South Carolina", 7.8]) # Bush
-        self.results.append([7, "South Carolina", 7.6]) # Kasich
-        self.results.append([5, "South Carolina", 7.2]) # Carson
+        self.results.append(["donald-trump", "South Carolina", 32.5]) # Trump
+        self.results.append(["marco-rubio", "South Carolina", 22.5]) # Rubio
+        self.results.append(["ted-cruz", "South Carolina", 22.3]) # Cruz
+        self.results.append(["jeb-bush", "South Carolina", 7.8]) # Bush
+        self.results.append(["john-kasich", "South Carolina", 7.6]) # Kasich
+        self.results.append(["ben-carson", "South Carolina", 7.2]) # Carson
     
     def get_input(self, candidate, state):
         inp = []
@@ -229,28 +219,36 @@ class Candidate_Predictor:
         for r in self.results:
             candidate = r[0]
             state = r[1]
-            try:
+            if candidate in self.candidate_favor and state in self.candidate_favor[candidate]:
                 inp.append(self.get_input(candidate, state))
-                out.append(r[3])
-            except:
-                pass
+                out.append(r[2])
         # Linear regression
         x = np.array(inp)
-        self.theta = np.multiply(np.multiply(np.linalg.inv(np.multiply(np.transpose(x), x)), np.transpose(x)), out)
+        print x
+        self.theta = np.transpose(x) * x
+        print self.theta
+        self.theta = np.linalg.inv(self.theta)
+        print self.theta
+        self.theta = self.theta * np.transpose(x) * out
+        print self.theta
 
     # Predicts the situation for a given list of candidates for a specific state
     # Returns a map of the percentage each candidate is predicted to have
     def predict(self, state):
         results = {}
         total = 0
-        for candidate in self.candidates:
-            inp = self.get_input(candidate, state)
-            results[candidate] = np.multiply(self.theta, inp)
-            total += results[candidate]
+        for candidate in self.candidate_favor:
+            if state in self.candidate_favor[candidate]:
+            	inp = self.get_input(candidate, state)
+            	results[candidate] = np.dot(self.theta, inp)
+            	total += results[candidate]
         # Normalize the results so they add to 100%
-        factor = 100 / results
-        for candidate in self.candidates:
-            results[candidate] = results[candidate] * factor
+        if total != 0:
+            factor = 100 / total
+            for candidate in results:
+                 results[candidate] = results[candidate] * factor
+        else:
+            return 0
         return results
 
     def load(self, json_file):
@@ -291,7 +289,7 @@ class Candidate_Predictor:
                         formatted[candidate][state] = results[state][candidate]
             # Writes
             for candidate in formatted:
-                writer.writerow(self.candidate_favor[candidate]['perc'])
+                writer.writerow(formatted[candidate])
 
 if __name__ == "__main__":
     test = Candidate_Predictor()
