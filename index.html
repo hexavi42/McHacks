@@ -275,7 +275,9 @@
 </style>
 
 <form>
+    <label>
     <input type="checkbox" name="overlay" value="female">
+    <h1>2015 Results</h1></label>
 </form>
 <svg width="960" height="600" id="statesvg"></svg> <!-- svg to hold the map. -->
 <div id="tooltip"></div>
@@ -380,12 +382,63 @@ var variableData ={};	/* Sample random data. */
 	
 	/* draw states on id #statesvg */	
 uStates.draw("#statesvg", originalData, tooltipHtml);
-
-
+    var r = "#c0392b";
+    var b = "#3498db";
     $('input[name=overlay]').change(function(){
             if($(this).is(':checked')){
                 console.log("checked");
-                variableData["Washington"]["color"] = "#3498db";
+                variableData["Washington"]["color"] = b;
+                variableData["Oregon"]["color"] = b;
+                variableData["California"]["color"] = b;
+                variableData["Nevada"]["color"] = b;
+                variableData["Idaho"]["color"] = r;
+                variableData["Utah"]["color"] = r;
+                variableData["Arizona"]["color"] = r;
+                variableData["Alaska"]["color"] = r;
+                variableData["Montana"]["color"] = r;
+                variableData["Wyoming"]["color"] = r;
+                variableData["Colorado"]["color"] = b;
+                variableData["NewMexico"]["color"] = b;
+                variableData["NorthDakota"]["color"] = r;
+                variableData["SouthDakota"]["color"] = r;
+                variableData["Nebraska"]["color"] = r;
+                variableData["Kansas"]["color"] = r;
+                variableData["Oklahoma"]["color"] = r;
+                variableData["Texas"]["color"] = r;
+                variableData["Minnesota"]["color"] = b;
+                variableData["Iowa"]["color"] = b;
+                variableData["Missouri"]["color"] = r;
+                variableData["Arkansas"]["color"] = r;
+                variableData["Louisiana"]["color"] = r;
+                variableData["Michigan"]["color"] = b;
+                variableData["Wisconsin"]["color"] = b;
+                variableData["Illinois"]["color"] = b;
+                variableData["Mississippi"]["color"] = r;
+                variableData["Indiana"]["color"] = r;
+                variableData["Kentucky"]["color"] = r;
+                variableData["Tennessee"]["color"] = r;
+                variableData["Alabama"]["color"] = r;
+                variableData["Ohio"]["color"] = b;
+                variableData["WestVirginia"]["color"] = r;
+                variableData["Virginia"]["color"] = b;
+                variableData["NorthCarolina"]["color"] = r;
+                variableData["SouthCarolina"]["color"] = r;
+                variableData["Georgia"]["color"] = r;
+                variableData["Florida"]["color"] = b;
+                variableData["Pennsylvania"]["color"] = b;
+                variableData["NewYork"]["color"] = b;
+                variableData["Maine"]["color"] = b;
+                variableData["Hawaii"]["color"] = b;
+                variableData["Vermont"]["color"] = b;
+                variableData["NewHampshire"]["color"] = b;
+                variableData["Massachusetts"]["color"] = b;
+                variableData["Connecticut"]["color"] = b;
+                variableData["Micronesia"]["color"] = b;
+                variableData["RhodeIsland"]["color"] = b;
+                variableData["NewJersey"]["color"] = b;
+                variableData["Delaware"]["color"] = b;
+                variableData["Maryland"]["color"] = b;
+
                 uStates.draw("#statesvg", variableData, tooltipHtml);
             }
             else{
