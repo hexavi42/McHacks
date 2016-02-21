@@ -172,7 +172,7 @@ class Candidate_Predictor:
                                 self.candidate_favor[candidate]['RT'] = int(row['retweets'] if row['retweets'] else 0)
 
     def calc_supporters(self):
-        for state in self.states:
+        for state in state_code.values():
             for citizen in self.states[state]:
                 try:
                     top_pick = max(self.states[state][citizen].iteritems(), key=operator.itemgetter(1))[0]
@@ -180,10 +180,10 @@ class Candidate_Predictor:
                     print(self.states[state][citizen])
                 if state not in self.candidate_favor[top_pick]:
                     self.candidate_favor[top_pick][state] = {'pop': 1}
-                    self.candidate_favor[top_pick][state]['perc'] = float(1)/state['pop']*100
+                    self.candidate_favor[top_pick][state]['perc'] = float(1)/self.states[state]['pop']*100
                 else:
                     self.candidate_favor[top_pick][state]['pop'] += 1
-                    self.candidate_favor[top_pick][state]['perc'] = float(self.candidate_favor[top_pick][state]['pop'])/state['pop']*100
+                    self.candidate_favor[top_pick][state]['perc'] = float(self.candidate_favor[top_pick][state]['pop'])/self.states[state]['pop']*100
 
     # Returns the sentiment value stored in the database
     def get_sentiment_value(self, candidate, state):

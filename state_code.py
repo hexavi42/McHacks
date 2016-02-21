@@ -21,7 +21,6 @@ state_code = {
     "MD": "Maryland",
     "MA": "Massachusetts",
     "MI": "Michigan",
-    "FM": "Micronesia",
     "MN": "Minnesota",
     "MS": "Mississippi",
     "MO": "Missouri",
