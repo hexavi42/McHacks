@@ -222,10 +222,10 @@ class Candidate_Predictor:
         return inp
 
     # Calculates the parameteres using normal equations
-    def calculate_params(self):
+    def train(self):
         inp = []
         out = []
-        results = self.get_results()
+        results = self.generate_results()
         for r in results:
             candidate = r[0]
             state = r[1]
@@ -234,12 +234,6 @@ class Candidate_Predictor:
         # Linear regression
         x = np.array(inp)
         self.theta = np.multiply(np.multiply(np.linalg.inv(np.multiply(np.transpose(x), x)), np.transpose(x)), out)
-
-    # Trains all the sentiment values based on the expected results
-    def train(self):
-        results = self.generate_results()
-        self.run_candidates()
-        self.calculate_params()
 
     # Predicts the situation for a given list of candidates for a specific state
     # Returns a map of the percentage each candidate is predicted to have
