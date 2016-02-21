@@ -269,8 +269,10 @@ class Candidate_Predictor:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             for candidate in self.candidates:
-                self.candidate_favor[candidate]['candidate'] = candidate
-                writer.writerow(self.candidate_favor[candidate]['state']['perc'])
+                temp_dic = {'candidate': candidate}
+                for state in self.candidate_favor[candidate].keys():
+                    temp_dic[state] = self.candidate_favor[candidate][state]['perc']
+                writer.writerow(temp_dic)
     
     # Generate predictions for all states
     def generate_all_predictions(self):
