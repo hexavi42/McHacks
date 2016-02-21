@@ -257,7 +257,27 @@ class Candidate_Predictor:
             for candidate in self.candidates:
                 self.candidate_favor[candidate]['candidate'] = candidate
                 writer.writerow(self.candidate_favor[candidate]['perc'])
-
+    
+    # Generate predictions for all states
+    def generate_all_predictions(self):
+        # Writes header
+        with open("predict.csv", 'w') as csvfile:
+          fieldnames = ["candidate"] + state_code.values()
+          writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+          # Generates results
+          results = {}
+          for state in state_code.values():
+              results[state] = predict(state)
+          # Inverts the dict to write in correct format
+          formatted = {}
+          for state in results:
+              for candidate in results[state]:
+                  if candidate not in formatted:
+                      formatted[candidate] = { 'candidate' : candidate }
+                  formatted[candidate][state] = results[state][candidate]
+          # Writes
+          for candidate in formatted:
+              writer.writerow(self.candidate_favor[candidate]['perc'])
 
 if __name__ == "__main__":
     test = Candidate_Predictor()
