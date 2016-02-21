@@ -1,35 +1,126 @@
 import numpy as np
+import requests
+import json
+from pymldb import Connection
+import csv
 
-ALABAMA = 1, ALASKA = 2, ARIZONA = 3, ARKANSAS = 4, CALIFORNIA = 5, COLORADO = 6, CONNECTICUT = 7,
-DELAWARE = 8, FLORIDA = 9, GEORGIA = 10, HAWAII = 11, IDAHO = 12, ILLINOIS = 13, INDIANA = 14, IOWA = 15,
-KANSAS = 16, KENTUCKY = 17, LOUISIANA = 18, MAINE = 19, MARYLAND = 20, MASSACHUSSETTS = 21, 
-MICHIGAN = 22, MINNESOTA = 23, MISSISSIPPI = 24, MISSOURI = 25, MONTANA = 26, NEBRASKA = 27, NEVADA = 28,
-NEW_HAMPSHIRE = 29, NEW_JERSEY = 30, NEW_MEXICO = 31, NEW_YORK = 32, NORTH_CAROLINA = 33, 
-NORTH_DEKOTA = 34, OHIO = 35, OKLAHOMA = 36, OREGON = 37, PENNSYLVANIA = 38, RHODE_ISLAND = 39, SOUTH_CAROLINA = 40, SOUTH_DEKOTA = 41, TENNESSEE = 42, TEXAS = 43, UTAH = 44, VERMONT = 45, VIRGINIA = 46, WASHINGTON = 47, WEST_VIRGINIA = 48, WISCONSON = 49, WYOMING = 50
+# TODO: Make less shitty by not having global fucking variables
+candidates = [
+    'bernie-sanders',
+    'hillary-clinton',
+    'donald-trump',
+    'jeb-bush',
+    'ted-cruz',
+    'john-kasich',
+    'marco-rubio'
+]
+candidate_favor = {}
+mldb = Connection(host="http://localhost:8080")
+theta = []
 
-SANDERS = 1, CLINTON = 2, TRUMP = 3, BUSH = 4, CARSON = 5, CRUZ = 6, KASICH = 7, RUBIO = 8
+# API Info
+LOCATION_API_URL = "http://api.fullcontact.com/v2/address/locationEnrichment.json"
+LOCATION_API_KEY = "82eeccbc6e96bcd1"
+# Candidates
+SANDERS = 1
+CLINTON = 2
+TRUMP = 3
+BUSH = 4
+CARSON = 5
+CRUZ = 6
+KASICH = 7
+RUBIO = 8
 
-# Should get the integer(constant) that most likely is the state of location string.
-# Returns -1 if not in the US
-def get_state_val(string):
-    pass
+
+# Should get the normalized state name that most likely is the state of location string.
+# Returns None if not in the US or not enough info
+def normalize_state_name(string):
+    if not string:
+        return None
+    params = {"place": string, "apiKey": LOCATION_API_KEY}
+    response = requests.get(url=LOCATION_API_URL, params=params)
+    result = json.loads(response.content)["locations"]
+    if len(result) > 0 and result[0]["country"]["code"] == "US" and result[0]["state"]:
+        return result[0]["state"]["name"]
+    return None
+
 
 # Returns the sentiment value stored in the database
 def get_sentiment_value(candidate, state):
-    pass
+    candidate_favor[candidates[candidate]][state]
+
 
 # Gets all the results stored in the database
 def get_results():
     # Format: [[CANDIDATE_ID, STATE_ID, VOTE_PERCENTAGE], ...]
     pass
 
+
 # Calculates all the sentiment values, then stores it in the db
 def calculate_sentiments():
-    pass
+    mldb.put('/v1/procedures/sentiwordneter', {
+        "type": "import.sentiwordnet",
+        "params": {
+            "dataFileUrl": "file:///mldb_data/SentiWordNet_3.0.0_20130122.txt",
+            "outputDataset": "sentiwordnet",
+            "runOnCreation": True
+        }
+    })
+    mldb.put("/v1/procedures/baseWorder", {
+        "type": "transform",
+        "params": {
+            "inputData": """
+                select *, jseval('
+                    return x.split("#")[0];
+                ', 'x', rowName()) as baseWord
+                from sentiwordnet
+            """,
+            "outputDataset": "senti_clean",
+            "runOnCreation": True
+        }
+    })
+    mldb.put("/v1/procedures/baseWorder", {
+        "type": "transform",
+        "params": {
+            "inputData": """
+                   select avg({* EXCLUDING(baseWord)}) as avg,
+                          min({* EXCLUDING(baseWord)}) as min,
+                          max({* EXCLUDING(baseWord)}) as max,
+                   count(*) as cnt
+                    NAMED baseWord
+                    from senti_clean
+                    group by baseWord
+                    order by cnt desc
+            """,
+            "outputDataset": "senti_clean2",
+            "runOnCreation": True
+        }
+    })
+    for candidate in candidates:
+        states = {}
+        with open('data/{0}.csv'.format(candidate), 'rb') as csvfile:
+            spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            for row in spamreader:
+                if len(row) == 2 and row[1]:
+                    state = normalize_state_name(row[1])
+                    if state is None:
+                        pass
+                    else:
+                        no_quote = row[0].replace("'", '')  # remove quotes because it messes with query
+                        split = "'{0}'".format(no_quote.replace(' ', "','"))
+                        sent_sent = mldb.query("select 'avg.NegSenti','avg.PosSenti' from senti_clean2 where rowName() in ({0})".format(split))
+                        overall_senti = 0
+                        if 'avg.NegSenti' in sent_sent.keys():
+                            for word in sent_sent['avg.NegSenti'].keys():
+                                overall_senti += sent_sent['avg.PosSenti'][word]-sent_sent['avg.NegSenti'][word]
+                            if state not in states:
+                                states[state] = overall_senti
+                            else:
+                                states[state] = states[state]+overall_senti
+                else:
+                    pass
+        candidate_favor[candidate] = states
 
-# Stores the parameters for the linear regression into the db
-def set_params(params):
-    pass
 
 # Calculates the parameteres using normal equations
 def calculate_params():
@@ -45,8 +136,19 @@ def calculate_params():
     # Linear regression
     x = np.array(inp)
     theta = np.multiply(np.multiply(np.linalg.inv(np.multiply(np.transpose(x), x)), np.transpose(x)), out)
-    set_params(theta)
 
+
+# Trains all the sentiment values based on the expected results
 def train():
     calculate_sentiments()
     calculate_params()
+
+# Predicts the situation for a given list of candidates for a specific state
+# Returns a map of the percentage each candidate is predicted to have
+def predict(candidates, state):
+    results = {}
+    for candidate in candidates:
+        inp = [get_sentiment_value(candidate, state)]
+        # TODO: WTF
+        results[candidate] = np.multiply(theta, inp)
+    return results    
