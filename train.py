@@ -183,10 +183,10 @@ class Candidate_Predictor:
                     print(self.states[state][citizen])
                 if state not in self.candidate_favor[top_pick]:
                     self.candidate_favor[top_pick][state] = {'pop': 1}
-                    self.candidate_favor[top_pick][state]['perc'] = float(1)/state['pop']*100
+                    self.candidate_favor[top_pick][state]['perc'] = float(1)/self.states[state]['pop']*100
                 else:
                     self.candidate_favor[top_pick][state]['pop'] += 1
-                    self.candidate_favor[top_pick][state]['perc'] = float(self.candidate_favor[top_pick][state]['pop'])/state['pop']*100
+                    self.candidate_favor[top_pick][state]['perc'] = float(self.candidate_favor[top_pick][state]['pop'])/self.states[state]['pop']*100
 
     # Returns the sentiment value stored in the database
     def get_sentiment_value(self, candidate, state):
@@ -248,6 +248,16 @@ class Candidate_Predictor:
         for candidate in self.candidates:
             results[candidate] = results[candidate] * factor
         return results
+
+    def load(self, json_file):
+        with open(json_file, 'r') as backup:
+            temp = json.load(backup)
+            self.states = temp['states']
+            self.candidate_favor = temp['candidate_favor']
+
+    def dump(self, file="dump.json"):
+        with open(file, 'w') as dumpfile:
+            json.dump({"states":self.states}, dumpfile)
 
     def save(self, file='sentiment.csv'):
         with open(file, 'w') as csvfile:
