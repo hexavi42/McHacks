@@ -103,7 +103,7 @@ class Candidate_Predictor:
         no_quote = sentence.replace("'", '')
         split = list(set(no_quote.split(' ')))
         join = "','".join(split)
-        sent_sent = self.mldb.query("select 'avg.NegSenti','avg.PosSenti' from senti_clean2 where rowName() in ('{0}'')".format(join))
+        sent_sent = self.mldb.query("select 'avg.NegSenti','avg.PosSenti' from senti_clean2 where rowName() in ('{0}')".format(join))
         overall_senti = 0
         if 'avg.NegSenti' in sent_sent.keys():
             for word in sent_sent['avg.NegSenti'].keys():
