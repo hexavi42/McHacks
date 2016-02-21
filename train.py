@@ -225,8 +225,8 @@ class Candidate_Predictor:
     def train(self):
         inp = []
         out = []
-        results = self.generate_results()
-        for r in results:
+        self.generate_results()
+        for r in self.results:
             candidate = r[0]
             state = r[1]
             inp.append(self.get_input(candidate, state))
