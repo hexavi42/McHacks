@@ -115,7 +115,7 @@ class Candidate_Predictor:
 
     # run tweet csvs about candidates through sentiment analysis
     def run_candidates(self):
-        for candidate in candidates:
+        for candidate in self.candidates:
             states = {}
             counter = 0
             with open('data/{0}.csv'.format(candidate), 'rb') as csvfile:
@@ -169,9 +169,9 @@ class Candidate_Predictor:
 
     # Predicts the situation for a given list of candidates for a specific state
     # Returns a map of the percentage each candidate is predicted to have
-    def predict(self, candidates, state):
+    def predict(self, state):
         results = {}
-        for candidate in candidates:
+        for candidate in self.candidates:
             inp = [self.get_sentiment_value(candidate, state)]
             # TODO: WTF
             results[candidate] = np.multiply(self.theta, inp)
