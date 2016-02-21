@@ -176,21 +176,24 @@ class Candidate_Predictor:
 
     def calc_supporters(self):
         for state in state_code.values():
-            for citizen in self.states[state]:
-                try:
-                    top_pick = max(self.states[state][citizen].iteritems(), key=operator.itemgetter(1))[0]
-                except:
-                    print(self.states[state][citizen])
-                else:
-                    if state not in self.candidate_favor[top_pick]:
-                        self.candidate_favor[top_pick][state] = {'pop': 1}
-                        self.candidate_favor[top_pick][state]['perc'] = float(1)/self.states[state]['pop']*100
+            try:
+                for citizen in self.states[state]:
+                    try:
+                        top_pick = max(self.states[state][citizen].iteritems(), key=operator.itemgetter(1))[0]
+                    except:
+                        print(self.states[state][citizen])
                     else:
-                        if 'pop' not in self.candidate_favor[top_pick][state]:
-                            self.candidate_favor[top_pick][state]['pop'] = 1
+                        if state not in self.candidate_favor[top_pick]:
+                            self.candidate_favor[top_pick][state] = {'pop': 1}
+                            self.candidate_favor[top_pick][state]['perc'] = float(1)/self.states[state]['pop']*100
                         else:
-                            self.candidate_favor[top_pick][state]['pop'] += 1
-                        self.candidate_favor[top_pick][state]['perc'] = float(self.candidate_favor[top_pick][state]['pop'])/self.states[state]['pop']*100
+                            if 'pop' not in self.candidate_favor[top_pick][state]:
+                                self.candidate_favor[top_pick][state]['pop'] = 1
+                            else:
+                                self.candidate_favor[top_pick][state]['pop'] += 1
+                            self.candidate_favor[top_pick][state]['perc'] = float(self.candidate_favor[top_pick][state]['pop'])/self.states[state]['pop']*100
+            except:
+                pass
 
     # Returns the sentiment value stored in the database
     def get_sentiment_value(self, candidate, state):
