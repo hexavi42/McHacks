@@ -270,7 +270,7 @@ class Candidate_Predictor:
             writer.writeheader()
             for candidate in self.candidates:
                 self.candidate_favor[candidate]['candidate'] = candidate
-                writer.writerow(self.candidate_favor[candidate]['perc'])
+                writer.writerow(self.candidate_favor[candidate]['state']['perc'])
     
     # Generate predictions for all states
     def generate_all_predictions(self):
