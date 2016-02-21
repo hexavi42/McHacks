@@ -145,7 +145,7 @@ class Candidate_Predictor:
                         else:
                             overall_senti = self.return_sent(row['text'])
                             if state not in self.states:
-                                self.states[state] = {row['user_id']: {candidate: overall_senti, 'pop': 1}}
+                                self.states[state] = {row['user_id']: {candidate: overall_senti}, 'pop': 1}
                             elif row['user_id'] not in self.states[state]:
                                 self.states[state][row['user_id']] = {candidate: overall_senti}
                                 self.states['pop'] += 1
