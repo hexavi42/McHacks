@@ -14,10 +14,11 @@ candidates = [
 ]
 candidate_favor = {}
 mldb = Connection(host="http://localhost:8080")
+theta = []
 
 # API Info
-LOCATION_API_URL = "https://api.fullcontact.com/v2/address/locationNormalizer.json"
-LOCATION_AI_KEY = "82eeccbc6e96bcd1"
+LOCATION_API_URL = "http://api.fullcontact.com/v2/address/locationEnrichment.json"
+LOCATION_API_KEY = "82eeccbc6e96bcd1"
 # Candidates
 SANDERS = 1
 CLINTON = 2
@@ -30,16 +31,16 @@ RUBIO = 8
 
 
 # Should get the normalized state name that most likely is the state of location string.
-# Returns -1 if not in the US or not enough info
+# Returns None if not in the US or not enough info
 def normalize_state_name(string):
     if not string:
-        return -1
-    params = {"place" : string, "apiKey" : LOCATION_API_KEY}
-    response = requests.post(url=LOCATION_API_URL, params=params)
-    result = json.loads(response.content)
-    if result["likelihood"] > 0.5 and result["country"]["code"] == "US" and result["state"]:
-        return statesMap[result["state"]["name"]]
-    return -1
+        return None
+    params = {"place": string, "apiKey": LOCATION_API_KEY}
+    response = requests.get(url=LOCATION_API_URL, params=params)
+    result = json.loads(response.content)["locations"]
+    if len(result) > 0 and result[0]["country"]["code"] == "US" and result[0]["state"]:
+        return result[0]["state"]["name"]
+    return None
 
 
 # Returns the sentiment value stored in the database
@@ -100,25 +101,23 @@ def calculate_sentiments():
             for row in spamreader:
                 if len(row) == 2 and row[1]:
                     state = normalize_state_name(row[1])
-                    no_quote = row[0].replace("'", '')  # remove quotes because it messes with query
-                    split = "'{0}'".format(no_quote.replace(' ', "','"))
-                    sent_sent = mldb.query("select 'avg.NegSenti','avg.PosSenti' from senti_clean2 where rowName() in ({0})".format(split))
-                    overall_senti = 0
-                    if 'avg.NegSenti' in sent_sent.keys():
-                        for word in sent_sent['avg.NegSenti'].keys():
-                            overall_senti += sent_sent['avg.PosSenti'][word]-sent_sent['avg.NegSenti'][word]
-                        if state not in states:
-                            states[state] = overall_senti
-                        else:
-                            states[state] = states[state]+overall_senti
+                    if state is None:
+                        pass
+                    else:
+                        no_quote = row[0].replace("'", '')  # remove quotes because it messes with query
+                        split = "'{0}'".format(no_quote.replace(' ', "','"))
+                        sent_sent = mldb.query("select 'avg.NegSenti','avg.PosSenti' from senti_clean2 where rowName() in ({0})".format(split))
+                        overall_senti = 0
+                        if 'avg.NegSenti' in sent_sent.keys():
+                            for word in sent_sent['avg.NegSenti'].keys():
+                                overall_senti += sent_sent['avg.PosSenti'][word]-sent_sent['avg.NegSenti'][word]
+                            if state not in states:
+                                states[state] = overall_senti
+                            else:
+                                states[state] = states[state]+overall_senti
                 else:
                     pass
         candidate_favor[candidate] = states
-
-
-# Stores the parameters for the linear regression into the db
-def set_params(params):
-    pass
 
 
 # Calculates the parameteres using normal equations
@@ -135,7 +134,6 @@ def calculate_params():
     # Linear regression
     x = np.array(inp)
     theta = np.multiply(np.multiply(np.linalg.inv(np.multiply(np.transpose(x), x)), np.transpose(x)), out)
-    set_params(theta)
 
 
 def train():
