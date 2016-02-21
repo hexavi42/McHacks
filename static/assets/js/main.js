@@ -116,7 +116,7 @@
         //  Typed JS
         //====================================
                 $(".element").typed({
-                    strings: ["STARTUP!", "OUR SITE!"],
+                    strings: ["Trump", "Sanders", "Cruz", "Clinton", "Carson", "Kasich", "Rubio", "Bush"],
                     typeSpeed: 300,
                     loop: true,
                     cursorChar: "|",
