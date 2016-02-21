@@ -59,7 +59,7 @@ def search(query, oauth):
 	write_header = True
     # Get as many tweets as possible
     stop = False
-    oldest_id = 700413616173006848
+    oldest_id = -1
     with open(filename, "wb+") as outfile:
         f = csv.writer(outfile)
         if write_header:
