@@ -185,7 +185,10 @@ class Candidate_Predictor:
                     self.candidate_favor[top_pick][state] = {'pop': 1}
                     self.candidate_favor[top_pick][state]['perc'] = float(1)/self.states[state]['pop']*100
                 else:
-                    self.candidate_favor[top_pick][state]['pop'] += 1
+                    if 'pop' not in self.candidate_favor[top_pick][state]:
+                        self.candidate_favor[top_pick][state]['pop'] = 1
+                    else:
+                        self.candidate_favor[top_pick][state]['pop'] += 1
                     self.candidate_favor[top_pick][state]['perc'] = float(self.candidate_favor[top_pick][state]['pop'])/self.states[state]['pop']*100
 
     # Returns the sentiment value stored in the database
