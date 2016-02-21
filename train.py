@@ -140,7 +140,10 @@ class Candidate_Predictor:
                     if self.depth and counter > self.depth:
                         break
                     else:
-                        state = normalize_state_name(row['location'])
+                        try:
+                            state = normalize_state_name(row['location'])
+                        except:
+                            state = None
                         if state is None:
                             self.gone_count += 1
                             pass
@@ -150,9 +153,9 @@ class Candidate_Predictor:
                                 self.states[state] = {row['user_id']: {candidate: overall_senti}, 'pop': 1}
                             elif row['user_id'] not in self.states[state]:
                                 self.states[state][row['user_id']] = {candidate: overall_senti}
-                                self.states['pop'] += 1
                                 self.total_pop += 1
-                            elif candidate not in self.states[row['user_id']]:
+                                self.states[state]['pop'] += 1
+                            elif candidate not in self.states[state][row['user_id']]:
                                 self.states[state][row['user_id']][candidate] = overall_senti
                             else:
                                 self.states[state][row['user_id']][candidate] = self.states[state][row['user_id']][candidate]+overall_senti
@@ -234,5 +237,6 @@ class Candidate_Predictor:
 if __name__ == "__main__":
     test = Candidate_Predictor()
     test.run_candidates()
+    test.calc_supporters()
     print(test.candidate_favor)
     test.save()
