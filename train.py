@@ -118,7 +118,7 @@ class Candidate_Predictor:
                 spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
                 for row in spamreader:
                     if len(row) == 2 and row[1]:
-                        state = normalize_state_name(row[1])
+                        state = self.normalize_state_name(row[1])
                         if state is None:
                             pass
                         else:
