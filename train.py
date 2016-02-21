@@ -51,11 +51,13 @@ class Candidate_Predictor:
     candidate_favor = {}
     mldb = None
     theta = []
+    depth = False
 
-    def __init__(self, port=8080, pool=candidates):
+    def __init__(self, port=8080, pool=candidates, depth=False):
         self.mldb = Connection(host="http://localhost:{0}".format(port))
         self.set_wordnet()
         self.candidates = pool
+        self.depth = depth
 
     # Tickles SentiWordnet, removing POS data
     def set_wordnet(self):
@@ -115,10 +117,14 @@ class Candidate_Predictor:
     def run_candidates(self):
         for candidate in candidates:
             states = {}
+            counter = 0
             with open('data/{0}.csv'.format(candidate), 'rb') as csvfile:
                 spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
                 for row in spamreader:
-                    if len(row) == 2 and row[1]:
+                    if self.depth and counter > self.depth:
+                        break
+                    elif len(row) == 2 and row[1]:
+                        counter += 1
                         state = normalize_state_name(row[1])
                         if state is None:
                             pass
@@ -173,6 +179,6 @@ class Candidate_Predictor:
 
 
 if __name__ == "__main__":
-    test = Candidate_Predictor(pool=['bernie-sanders'])
+    test = Candidate_Predictor(pool=['bernie-sanders'], depth=50)
     test.run_candidates()
     print(test.candidate_favor)
