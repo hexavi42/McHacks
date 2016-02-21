@@ -53,7 +53,7 @@ def get_oauth():
 # Uses Twitter REST API to search for tweets with the query and saves to csv
 def search(query, oauth):
     # Adds header if file does not exist
-    filename = "data/" + query.lower().replace(" ", "-") + ".csv"
+    filename = "data2/" + query.lower().replace(" ", "-") + ".csv"
     write_header = False
     if not os.path.isfile(filename):
 	write_header = True
