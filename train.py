@@ -10,6 +10,7 @@ candidates = [
     'hillary-clinton',
     'donald-trump',
     'jeb-bush',
+    'ben-carson',
     'ted-cruz',
     'john-kasich',
     'marco-rubio'
@@ -39,7 +40,10 @@ def normalize_state_name(string):
         return None
     params = {"place": string, "apiKey": LOCATION_API_KEY}
     response = requests.get(url=LOCATION_API_URL, params=params)
-    result = json.loads(response.content)["locations"]
+    result = json.loads(response.content)
+    if "locations" in key:
+        return None
+    result = result["locations"]
     if len(result) > 0 and result[0]["country"]["code"] == "US" and result[0]["state"]:
         return result[0]["state"]["name"]
     return None
@@ -143,6 +147,7 @@ def train():
     calculate_sentiments()
     calculate_params()
 
+
 # Predicts the situation for a given list of candidates for a specific state
 # Returns a map of the percentage each candidate is predicted to have
 def predict(candidates, state):
@@ -151,4 +156,9 @@ def predict(candidates, state):
         inp = [get_sentiment_value(candidate, state)]
         # TODO: WTF
         results[candidate] = np.multiply(theta, inp)
-    return results    
+    return results
+
+
+if __name__ == "__main__":
+    calculate_sentiments()
+    print(candidate_favor)
