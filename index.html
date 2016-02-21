@@ -44,7 +44,7 @@
 					<p class="title-small wow fadeInDown" data-wow-delay="0.3s">for the people, by the people</p>
 
 					<div class="wow fadeInDown" data-wow-delay="0.3s">
-                        <a class="btn btn-action" href="#"
+                        <a class="btn btn-action" href="#about-us"
                             role="button">POTUS
 						</a>
 					</div>
@@ -237,7 +237,9 @@
 <!-- FRONT PAGE STARTS HERE -->
 <section id="map">
     <div class="container">
+        <div class="col-sm-12 text-center">
             <h1>Map Update</h1>
+
 <style>
 	.state{
 		fill: none;
@@ -248,51 +250,37 @@
 		fill-opacity:0.5;
 	}
 	#tooltip {   
-		position: absolute;           
+        position: static;           
 		text-align: center;
-		padding: 20px;             
         margin:  10px;
-		font: 12px sans-serif;        
-		background: lightsteelblue;   
-		border: 20px;      
-		border-radius: 2px;           
+		font: 20px sans-serif;        
 		pointer-events: none;         
+        background:rgba(0,0,0,0.9);
+        border:1px solid grey;
+        border-radius:5px;
+        padding:4px;
+        color:white;
+        opacity:0;
 	}
 	#tooltip h4{
 		margin:10px;
 		font-size:40px;
 	}
-	#tooltip{
-		background:rgba(0,0,0,0.9);
-		border:1px solid grey;
-		border-radius:5px;
-        font-size:20px;
-        width:25%;
-		padding:4px;
-		color:white;
-		opacity:0;
-	}
-	#tooltip table{
-		table-layout:fixed;
-	}
-	#tooltip tr td{
-		padding:0;
-		margin:0;
-	}
+	
 	#tooltip tr td:nth-child(1){
-		width:50px;
+        text-align:center;
 	}
 	#tooltip tr td:nth-child(2){
-		text-align:center;
+        text-align:center;
 	}
 </style>
 
-<div id="tooltip"></div><!-- div to hold tooltip. -->
+
 <svg width="960" height="600" id="statesvg"></svg> <!-- svg to hold the map. -->
+<div id="tooltip"></div>
 <script src="/static/assets/js/uStates.js"></script> <!-- creates uStates. -->
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
-
 	function tooltipHtml(n, d){	/* function to create html content string in tooltip div. */
 		return "<h4>"+n+"</h4><table>"+
             "<tr><td>Bush</td><td>"+(d.bush)+"</td></tr>"+
@@ -320,8 +308,12 @@
 		});
 	
 	/* draw states on id #statesvg */	
+
 	uStates.draw("#statesvg", sampleData, tooltipHtml);
+
 </script>
+
+        </div>
     </div>
 </section>
 <!-- FRONT PAGE ENDS HERE -->
