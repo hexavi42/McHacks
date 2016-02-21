@@ -159,9 +159,9 @@ class Candidate_Predictor:
                                                                    'maxTime': parser.parse(row['created_at']),
                                                                    'RT': int(row['retweets'] if row['retweets'] else 0)}
                             else:
-                                if parser.parse(row['created_at']) > self.candidate_favor['maxTime']:
+                                if parser.parse(row['created_at']) > self.candidate_favor[candidate]['maxTime']:
                                     self.candidate_favor[candidate]['maxTime'] = parser.parse(row['created_at'])
-                                elif parser.parse(row['created_at']) < self.candidate_favor['minTime']:
+                                elif parser.parse(row['created_at']) < self.candidate_favor[candidate]['minTime']:
                                     self.candidate_favor[candidate]['minTime'] = parser.parse(row['created_at'])
                                 self.candidate_favor[candidate]['RT'] = int(row['retweets'] if row['retweets'] else 0)
 
