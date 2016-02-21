@@ -52,23 +52,23 @@ def get_oauth():
     return oauth
 # Uses Twitter REST API to search for tweets with the query and saves to csv
 def search(query, oauth):
-    # Removes to write to if it already exists
+    # Adds header if file does not exist
     filename = "data/" + query.lower().replace(" ", "-") + ".csv"
-    try:
-        os.remove(filename)
-    except OSError:
-        pass
+    write_header = False
+    if not os.path.isfile(filename):
+	write_header = True
+    # Get as many tweets as possible
     stop = False
-    oldest_id = -1
+    oldest_id = 700413616173006848
     with open(filename, "wb+") as outfile:
         f = csv.writer(outfile)
-        f.writerow(["content"])      
+        if write_header:
+            f.writerow(["text", "location"])
         while not stop:
             # Sets the params
-            params = {'q' : query, 'since' : OLDEST_TWEET_DATE, 'count' : 100, 'until', '2016-02-19'}
+            params = {'q' : query, 'since' : OLDEST_TWEET_DATE, 'count' : 100, 'until' : '2016-02-19'}
             if oldest_id != -1:
                 params["max_id"] = oldest_id
-            print "Oldest Id:", oldest_id
             # Makes a GET request
             response = requests.get(url=SEARCH_URL, auth=oauth, params=params)
             result =  json.loads(response.content)
@@ -78,13 +78,14 @@ def search(query, oauth):
             else:
                 # Writes to CSV 
                 for r in result["statuses"]:
-                    f.writerow([u''.join(r["text"]).encode('utf-8')])
+                    f.writerow([u''.join(r["text"]).encode('utf-8'), u''.join(r["user"]["location"]).encode('utf-8')])
                     if oldest_id == -1 or r["id"] < oldest_id:
                         oldest_id = r["id"]
+            print "Oldest Id:", oldest_id
 # Executable Code
 args = sys.argv
 if len(sys.argv) != 2:
-    print "Must have exactly 1 argument, the search query string"
+    print "Must have exactly 1 arguments, the search query string"
 else:
     oauth = get_oauth()
     print "Search: " + sys.argv[1]
