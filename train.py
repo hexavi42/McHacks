@@ -217,7 +217,7 @@ class Candidate_Predictor:
         max_tweet_time = (self.candidate_favor[candidate][state]['maxTime'] - self.candidate_favor[candidate][state]['minTime']).total_seconds() / 100
         inp.append(self.candidate_favor[candidate][state]['perc'])
         inp.append(self.candidate_favor[candidate][state]['RT'])
-        inp.append(self.candidate_favor[candidate][state]['count'])
+        inp.append(self.candidate_favor[candidate][state]['pop'])
         inp.append(max_tweet_time)
         return inp
 
@@ -279,22 +279,22 @@ class Candidate_Predictor:
     def generate_all_predictions(self):
         # Writes header
         with open("predict.csv", 'w') as csvfile:
-          fieldnames = ["candidate"] + state_code.values()
-          writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-          # Generates results
-          results = {}
-          for state in state_code.values():
-              results[state] = self.predict(state)
-          # Inverts the dict to write in correct format
-          formatted = {}
-          for state in results:
-              for candidate in results[state]:
-                  if candidate not in formatted:
-                      formatted[candidate] = { 'candidate' : candidate }
-                  formatted[candidate][state] = results[state][candidate]
-          # Writes
-          for candidate in formatted:
-              writer.writerow(self.candidate_favor[candidate]['perc'])
+            fieldnames = ["candidate"] + state_code.values()
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            # Generates results
+            results = {}
+            for state in state_code.values():
+                results[state] = self.predict(state)
+            # Inverts the dict to write in correct format
+            formatted = {}
+            for state in results:
+                for candidate in results[state]:
+                    if candidate not in formatted:
+                        formatted[candidate] = { 'candidate' : candidate }
+                        formatted[candidate][state] = results[state][candidate]
+            # Writes
+            for candidate in formatted:
+                writer.writerow(self.candidate_favor[candidate]['perc'])
 
 if __name__ == "__main__":
     test = Candidate_Predictor()
