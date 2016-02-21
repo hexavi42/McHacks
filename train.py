@@ -139,8 +139,7 @@ class Candidate_Predictor:
                     elif len(row) == 2 and row[1]:
                         state = normalize_state_name(row[1])
                         if state is None:
-                            if self.depth:
-                                print(row[1])
+                            pass
                         else:
                                 overall_senti = self.return_sent(row[0])
                                 if state not in states:
