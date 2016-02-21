@@ -277,7 +277,7 @@ class Candidate_Predictor:
           # Generates results
           results = {}
           for state in state_code.values():
-              results[state] = predict(state)
+              results[state] = self.predict(state)
           # Inverts the dict to write in correct format
           formatted = {}
           for state in results:
