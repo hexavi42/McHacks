@@ -3,6 +3,8 @@ import requests
 import json
 from pymldb import Connection
 import csv
+import re
+from state_code import state_code
 
 candidates = [
     'bernie-sanders',
@@ -34,18 +36,27 @@ RUBIO = 8
 def normalize_state_name(string):
     if not string:
         return None
-    params = {"place": string, "apiKey": LOCATION_API_KEY}
-    response = requests.get(url=LOCATION_API_URL, params=params)
-    result = json.loads(response.content)
-    if "locations" not in result:
-        return None
-    result = result["locations"]
-    for loc in result:
-        if "country" in loc and 'code' in loc["country"] and\
-         loc["country"]['code'] == 'US':
-            return loc["state"]["name"]
-        else:
+    elif re.search(', [A-Z]{2}$', string):
+        match = re.search(', ([A-Z]{2})$', string)
+        try:
+            return state_code[match.group(1)]
+        except:
             return None
+    # last resort - extreeeeemely limited API calls
+    else:
+        params = {"place": string, "apiKey": LOCATION_API_KEY}
+        response = requests.get(url=LOCATION_API_URL, params=params)
+        result = json.loads(response.content)
+        if "locations" not in result:
+            return None
+        result = result["locations"]
+        for loc in result:
+            if "country" in loc and 'code' in loc["country"] and\
+             loc["country"]['code'] == 'US':
+                try:
+                    return loc["state"]["name"]
+                except:
+                    return None
 
 
 class Candidate_Predictor:
