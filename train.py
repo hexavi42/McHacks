@@ -21,6 +21,7 @@ theta = []
 
 # API Info
 LOCATION_API_URL = "http://api.fullcontact.com/v2/address/locationEnrichment.json"
+POLLING_API_URL = "http://elections.huffingtonpost.com/pollster/api/polls"
 LOCATION_API_KEY = "82eeccbc6e96bcd1"
 # Candidates
 SANDERS = 1
@@ -41,10 +42,10 @@ def normalize_state_name(string):
     params = {"place": string, "apiKey": LOCATION_API_KEY}
     response = requests.get(url=LOCATION_API_URL, params=params)
     result = json.loads(response.content)
-    if "locations" in key:
+    if "locations" not in result:
         return None
     result = result["locations"]
-    if len(result) > 0 and result[0]["country"]["code"] == "US" and result[0]["state"]:
+    if len(result) > 0 and "country" in result[0] and result[0]["country"]["code"] == "US" and "state" in result[0] and result[0]["state"]:
         return result[0]["state"]["name"]
     return None
 
