@@ -145,14 +145,14 @@ class Candidate_Predictor:
                         else:
                             overall_senti = self.return_sent(row['text'])
                             if state not in self.states:
-                                self.states[state] = {row['user']: {candidate: overall_senti, 'pop': 1}}
-                            elif row['user'] not in self.states[state]:
-                                self.states[state][row['user']] = {candidate: overall_senti}
+                                self.states[state] = {row['user_id']: {candidate: overall_senti, 'pop': 1}}
+                            elif row['user_id'] not in self.states[state]:
+                                self.states[state][row['user_id']] = {candidate: overall_senti}
                                 self.states['pop'] += 1
-                            elif candidate not in self.states[row['user']]:
-                                self.states[state][row['user']][candidate] = overall_senti
+                            elif candidate not in self.states[row['user_id']]:
+                                self.states[state][row['user_id']][candidate] = overall_senti
                             else:
-                                self.states[state][row['user']][candidate] = self.states[state][row['user']][candidate]+overall_senti
+                                self.states[state][row['user_id']][candidate] = self.states[state][row['user_id']][candidate]+overall_senti
                             counter += 1
                             if candidate not in self.candidate_favor:
                                 self.candidate_favor[candidate] = {'minTime': parser.parse(row['created_at']),
