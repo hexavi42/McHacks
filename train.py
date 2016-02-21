@@ -4,6 +4,8 @@ import json
 from pymldb import Connection
 import csv
 import re
+from dateutil import parser
+import operator
 from state_code import state_code
 
 all_candidates = [
@@ -60,11 +62,12 @@ def normalize_state_name(string):
 
 
 class Candidate_Predictor:
-    candidates = []
-    candidate_favor = {}
+    states = {}
     mldb = None
     theta = []
     depth = False
+    candidate_favor = {}
+    total_pop = 0
 
     def __init__(self, port=8080, pool=all_candidates, depth=False):
         self.mldb = Connection(host="http://localhost:{0}".format(port))
@@ -129,27 +132,49 @@ class Candidate_Predictor:
     # run tweet csvs about candidates through sentiment analysis
     def run_candidates(self):
         for candidate in self.candidates:
-            states = {}
             counter = 0
-            with open('data/{0}.csv'.format(candidate), 'rb') as csvfile:
-                spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            with open('data2/{0}.csv'.format(candidate), 'rb') as csvfile:
+                spamreader = csv.DictReader(csvfile)
                 for row in spamreader:
                     if self.depth and counter > self.depth:
                         break
-                    elif len(row) == 2 and row[1]:
-                        state = normalize_state_name(row[1])
+                    else:
+                        state = normalize_state_name(row['location'])
                         if state is None:
                             pass
                         else:
-                            overall_senti = self.return_sent(row[0])
-                            if state not in states:
-                                states[state] = overall_senti
+                            overall_senti = self.return_sent(row['text'])
+                            if state not in self.states:
+                                self.states[state] = {row['user']: {candidate: overall_senti, 'pop': 1}}
+                            elif row['user'] not in self.states[state]:
+                                self.states[state][row['user']] = {candidate: overall_senti}
+                                self.states['pop'] += 1
+                            elif candidate not in self.states[row['user']]:
+                                self.states[state][row['user']][candidate] = overall_senti
                             else:
-                                states[state] = states[state]+overall_senti
+                                self.states[state][row['user']][candidate] = self.states[state][row['user']][candidate]+overall_senti
                             counter += 1
-                    else:
-                        pass
-            self.candidate_favor[candidate] = states
+                            if candidate not in self.candidate_favor:
+                                self.candidate_favor[candidate] = {'minTime': parser.parse(row['created_at']),
+                                                                   'maxTime': parser.parse(row['created_at']),
+                                                                   'RT': int(row['retweets'] if row['retweets'] else 0)}
+                            else:
+                                if parser.parse(row['created_at']) > self.candidate_favor['maxTime']:
+                                    self.candidate_favor[candidate]['maxTime'] = parser.parse(row['created_at'])
+                                elif parser.parse(row['created_at']) < self.candidate_favor['minTime']:
+                                    self.candidate_favor[candidate]['minTime'] = parser.parse(row['created_at'])
+                                self.candidate_favor[candidate]['RT'] = int(row['retweets'] if row['retweets'] else 0)
+
+    def calc_supporters(self):
+        for state in self.states:
+            for citizen in state:
+                top_pick = max(citizen.iteritems(), key=operator.itemgetter(1))[0]
+                if state not in self.candidate_favor[top_pick]:
+                    self.candidate_favor[top_pick][state] = {'pop': 1}
+                    self.candidate_favor[top_pick][state]['perc'] = float(1)/state['pop']*100
+                else:
+                    self.candidate_favor[top_pick][state]['pop'] += 1
+                    self.candidate_favor[top_pick][state]['perc'] = float(self.candidate_favor[top_pick][state]['pop'])/state['pop']*100
 
     # Returns the sentiment value stored in the database
     def get_sentiment_value(self, candidate, state):
@@ -197,7 +222,7 @@ class Candidate_Predictor:
             writer.writeheader()
             for candidate in self.candidates:
                 self.candidate_favor[candidate]['candidate'] = candidate
-                writer.writerow(self.candidate_favor[candidate])
+                writer.writerow(self.candidate_favor[candidate]['perc'])
 
 
 if __name__ == "__main__":
