@@ -66,6 +66,7 @@ class Candidate_Predictor:
     mldb = None
     theta = []
     depth = False
+    results = []
     candidate_favor = {}
     total_pop = 0
     gone_count = 0
@@ -168,7 +169,7 @@ class Candidate_Predictor:
                                                                    'RT': int(row['retweets'] if row['retweets'] else 0)} 
                             else:
                                 if parser.parse(row['created_at']) > self.candidate_favor[candidate][state]['maxTime']:
-                                    self.candidate_favor[candidate][[state]'maxTime'] = parser.parse(row['created_at'])
+                                    self.candidate_favor[candidate][state]['maxTime'] = parser.parse(row['created_at'])
                                 elif parser.parse(row['created_at']) < self.candidate_favor[candidate][state]['minTime']:
                                     self.candidate_favor[candidate][state]['minTime'] = parser.parse(row['created_at'])
                                 self.candidate_favor[candidate][state]['RT'] = int(row['retweets'] if row['retweets'] else 0)
@@ -191,10 +192,18 @@ class Candidate_Predictor:
     def get_sentiment_value(self, candidate, state):
         self.candidate_favor[all_candidates[candidate]][state]
 
-    # Gets all the results stored in the database
-    def get_results(self):
-        # Format: [[CANDIDATE_ID, STATE_ID, VOTE_PERCENTAGE], ...]
-        pass
+    # Hardcoded, because hackathon
+    def generate_results(self):
+        # Democratic Nevada
+        self.results.append([2, "Nevada", 52.7]) # Clinton
+        self.results.append([1, "Nevada", 47.2]) # Sanders
+        # Republican South Carolina
+        self.results.append([3, "South Carolina", 32.5]) # Trump
+        self.results.append([8, "South Carolina", 22.5]) # Rubio
+        self.results.append([6, "South Carolina", 22.3]) # Cruz
+        self.results.append([4, "South Carolina", 7.8]) # Bush
+        self.results.append([7, "South Carolina", 7.6]) # Kasich
+        self.results.append([5, "South Carolina", 7.2]) # Carson
     
     def get_input(self, candidate, state):
         inp = []
@@ -221,6 +230,7 @@ class Candidate_Predictor:
 
     # Trains all the sentiment values based on the expected results
     def train(self):
+        results = self.generate_results()
         self.run_candidates()
         self.calculate_params()
 
@@ -228,9 +238,15 @@ class Candidate_Predictor:
     # Returns a map of the percentage each candidate is predicted to have
     def predict(self, state):
         results = {}
+        total = 0
         for candidate in self.candidates:
             inp = self.get_input(candidate, state)
             results[candidate] = np.multiply(self.theta, inp)
+            total += results[candidate]
+        # Normalize the results so they add to 100%
+        factor = 100 / results
+        for candidate in self.candidates:
+            results[candidate] = results[candidate] * factor
         return results
 
     def save(self, file='sentiment.csv'):
