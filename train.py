@@ -31,7 +31,7 @@ RUBIO = 8
 
 # Should get the normalized state name that most likely is the state of location string.
 # Returns None if not in the US or not enough info
-def normalize_state_name(self, string):
+def normalize_state_name(string):
     if not string:
         return None
     params = {"place": string, "apiKey": LOCATION_API_KEY}
@@ -118,7 +118,7 @@ class Candidate_Predictor:
                 spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
                 for row in spamreader:
                     if len(row) == 2 and row[1]:
-                        state = self.normalize_state_name(row[1])
+                        state = normalize_state_name(row[1])
                         if state is None:
                             pass
                         else:
